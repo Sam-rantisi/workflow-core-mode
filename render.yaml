@@ -1,6 +1,20 @@
 services:
-  - type: web
-    name: n8n-ultimate-generator
+  - type: worker
+    name: version-generator
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python3 generator.py
+    startCommand: python generator.py
+    autoDeploy: false
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GENERATOR_MODE
+        value: enterprise
+      - key: STAGING_BUCKET
+        value: workflowpacks
+      - key: PROD_BUCKET
+        value: workflowpacks
