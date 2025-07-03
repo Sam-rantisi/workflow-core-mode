@@ -119,8 +119,11 @@ def shape_prompt(version):
     node_patterns = load_json(NODE_ANALYSIS_FILE)
     prev_summary = summarize_previous_versions()
     recent_prompts = "\n---\n".join(prompt_history[-3:] if isinstance(prompt_history, list) else [])
+
+    base_instruction = feedback.get("V_next_prompt", "Build the smartest possible enterprise n8n workflow automation pack.")
+
     return f"""
-Build the smartest possible enterprise n8n workflow automation pack.
+{base_instruction}
 Version: V{version}
 Previous Structure:
 {prev_summary}
@@ -251,8 +254,14 @@ def run():
     winner = wf1 if score_workflow(wf1) >= score_workflow(wf2) else wf2
     score = score_workflow(winner)
     critique = gpt_generate(f"Critique this n8n workflow: {json.dumps(winner)}")
-    feedback_injection = json.dumps(load_json(os.path.join(PACKS_DIR, FEEDBACK_FILE)), indent=2)
     self_prompt = gpt_generate(f"Given this critique, what should V{version+1}'s prompt be? {critique}")
+
+    feedback_update = {
+        "V_next_prompt": self_prompt,
+        "V_prev_critique": critique,
+        "V_prev_score": score
+    }
+    save_json(os.path.join(PACKS_DIR, FEEDBACK_FILE), feedback_update)
 
     files = {
         "workflow.json": winner,
@@ -262,7 +271,7 @@ def run():
         "deployment.md": gpt_generate("Instructions for deploying an n8n automation pack on Render + Supabase."),
         "node_suggestions.md": gpt_generate(f"Suggest 3 advanced nodes for V{version} with logic + API."),
         "validation.md": critique,
-        "feedback_injection.md": feedback_injection,
+        "feedback_injection.md": json.dumps(feedback_update, indent=2),
         "self_prompt.md": self_prompt
     }
     if version > 1:
