@@ -1,0 +1,5 @@
+1. Machine Learning Node: This advanced node would use logic and API to implement machine learning algorithms. The node could use API to fetch data from different sources and then apply logic to train machine learning models on this data. The node could also provide options for different machine learning algorithms to be used, depending on the specific use case.
+
+2. Data Analysis Node: This advanced node would use logic and API to analyze data. It could use API to collect data from different sources and then use logic to analyze this data and derive insights from it. This could involve statistical analysis, data visualization, and other data analysis techniques.
+
+3. Automation Node: This advanced node would use logic and API to automate tasks. The node could use API to interact with different software and systems, and use logic to determine when and how these tasks should be automated. This could be used for a wide range of tasks, from automating data entry to automating complex business processes.

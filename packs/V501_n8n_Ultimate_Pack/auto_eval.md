@@ -1,0 +1,1 @@
+Compared to V500, V501 introduced retry scaffolding, logic branching awareness, and prompt evolution memory.

@@ -1,0 +1,80 @@
+{
+  "name": "Ultimate_Workflow_V501",
+  "nodes": [
+    {
+      "name": "Start",
+      "type": "start",
+      "parameters": {}
+    },
+    {
+      "name": "Webhook",
+      "type": "webhook",
+      "parameters": {
+        "path": "v501-intelligent-trigger"
+      }
+    },
+    {
+      "name": "Credential Checker",
+      "type": "function",
+      "parameters": {
+        "functionCode": "return [{json: {status: 'ok'}}];"
+      }
+    },
+    {
+      "name": "HTTP Request",
+      "type": "httpRequest",
+      "parameters": {
+        "url": "https://api.smart.com/data",
+        "retryOnFail": true,
+        "maxTries": 3
+      }
+    },
+    {
+      "name": "Data Transformer",
+      "type": "code",
+      "parameters": {
+        "language": "javascript",
+        "code": "item.transformed = true; return item;"
+      }
+    },
+    {
+      "name": "Set Status",
+      "type": "set",
+      "parameters": {
+        "fields": [
+          {
+            "name": "flow_status",
+            "value": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supabase Insert",
+      "type": "supabase",
+      "parameters": {
+        "table": "enterprise_logs"
+      }
+    }
+  ],
+  "connections": {
+    "Start": [
+      "Webhook"
+    ],
+    "Webhook": [
+      "Credential Checker"
+    ],
+    "Credential Checker": [
+      "HTTP Request"
+    ],
+    "HTTP Request": [
+      "Data Transformer"
+    ],
+    "Data Transformer": [
+      "Set Status"
+    ],
+    "Set Status": [
+      "Supabase Insert"
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+1. Real-time Data Processing Node: This node can be designed to handle real-time data processing tasks. It can be integrated with APIs to fetch real-time data from various sources and process it according to the given logic. This can be particularly useful in systems that require real-time analytics like stock market prediction systems, real-time monitoring systems, etc.
+
+2. Machine Learning Node: This advanced node can be designed to handle machine learning tasks. It can be integrated with APIs of machine learning platforms like TensorFlow, PyTorch, etc. to train models, make predictions, and evaluate results. The logic can be designed to handle various machine learning tasks like data preprocessing, model training, prediction, etc.
+
+3. IoT Integration Node: This node can be designed to handle tasks related to IoT (Internet of Things). It can be integrated with APIs of IoT platforms to fetch data from IoT devices, send commands to IoT devices, etc. The logic can be designed to handle tasks like data aggregation, device command processing, etc.

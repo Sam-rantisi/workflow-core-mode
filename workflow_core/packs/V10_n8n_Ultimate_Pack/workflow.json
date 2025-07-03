@@ -1,0 +1,57 @@
+{
+  "name": "Ultimate_Workflow_V10",
+  "nodes": [
+    {
+      "name": "Start",
+      "type": "start",
+      "parameters": {}
+    },
+    {
+      "name": "Webhook",
+      "type": "webhook",
+      "parameters": {
+        "path": "v10-trigger"
+      }
+    },
+    {
+      "name": "HTTP Request",
+      "type": "httpRequest",
+      "parameters": {
+        "url": "https://api.example.com/data"
+      }
+    },
+    {
+      "name": "Set",
+      "type": "set",
+      "parameters": {
+        "fields": [
+          {
+            "name": "status",
+            "value": "processed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Supabase Insert",
+      "type": "supabase",
+      "parameters": {
+        "table": "events"
+      }
+    }
+  ],
+  "connections": {
+    "Start": [
+      "Webhook"
+    ],
+    "Webhook": [
+      "HTTP Request"
+    ],
+    "HTTP Request": [
+      "Set"
+    ],
+    "Set": [
+      "Supabase Insert"
+    ]
+  }
+}

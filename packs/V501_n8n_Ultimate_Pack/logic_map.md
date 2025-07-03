@@ -1,0 +1,1 @@
+Start -> Webhook -> Credential Checker -> HTTP Request (with retry) -> Data Transformer -> Set Status -> Supabase Insert

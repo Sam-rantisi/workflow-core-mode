@@ -1,0 +1,12 @@
+# Ignore everything except packs folder content
+.env
+*.pyc
+__pycache__/
+
+# Ignore everything in packs, then unignore what we want
+/packs/*
+!/packs/**/
+!/packs/**/*.md
+!/packs/**/*.txt
+!/packs/**/*.json
+!logs/ledger.json

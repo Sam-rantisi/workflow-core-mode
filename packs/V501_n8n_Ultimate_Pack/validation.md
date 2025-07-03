@@ -1,0 +1,1 @@
+Critique Score: 100. All patterns matched. Resilient, credential-aware, retry-capable, memory-shaped.

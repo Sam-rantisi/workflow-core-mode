@@ -1,0 +1,1 @@
+Without specifying the product, system, or software, it's impossible to provide an accurate comparison between V9 and V10. Please provide more details.

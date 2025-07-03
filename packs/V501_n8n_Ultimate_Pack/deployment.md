@@ -1,0 +1,1 @@
+Use n8n hosted on Render. Configure Supabase keys. Trigger via webhook endpoint `v501-intelligent-trigger`. Monitor Supabase `enterprise_logs` for audit.
