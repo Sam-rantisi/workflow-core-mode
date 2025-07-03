@@ -1,10 +1,13 @@
 services:
   - type: worker
     name: version-generator
-    env: python
+    runtime: python
+    plan: starter
+    region: oregon
+    branch: main
     buildCommand: pip install -r requirements.txt
-    startCommand: python generator.py
-    autoDeploy: false
+    startCommand: python3 generator.py
+    autoDeploy: true
     envVars:
       - key: SUPABASE_URL
         sync: false
@@ -18,3 +21,4 @@ services:
         value: workflowpacks
       - key: PROD_BUCKET
         value: workflowpacks
+
