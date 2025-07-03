@@ -1,1 +1,72 @@
-{"name": "Ultimate_Workflow_V541", "nodes": [], "connections": {}}
+{
+  "name": "Ultimate Automation Flow V541",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.example.com/data",
+        "method": "GET",
+        "responseFormat": "json"
+      },
+      "id": "HttpRequest1",
+      "name": "Fetch API Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        300,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(item => ({ json: { transformed: item.json } }));"
+      },
+      "id": "Function1",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        500,
+        250
+      ]
+    },
+    {
+      "parameters": {
+        "sheetId": "sheet123",
+        "range": "Sheet1!A1",
+        "valueInputOption": "USER_ENTERED"
+      },
+      "id": "GoogleSheets1",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 1,
+      "position": [
+        700,
+        250
+      ]
+    }
+  ],
+  "connections": {
+    "Fetch API Data": {
+      "main": [
+        [
+          {
+            "node": "Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
