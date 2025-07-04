@@ -1,4 +1,4 @@
-# generator_refactored.py
+# generator.py
 # Ultra-intelligent generator for $100M-grade n8n workflows
 # Version-aware, self-correcting, evolution-enforcing
 
@@ -7,6 +7,7 @@ import json
 import zipfile
 import shutil
 import hashlib
+import re
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -60,13 +61,20 @@ def get_versions():
 
 def shape_prompt(version, prev_prompt, feedback):
     return f"""
-Build the most advanced, fault-tolerant, enterprise-scale n8n workflow for automation V{version}.
-Incorporate feedback from V{version-1}:
+V{version} Mission — Evolve automation beyond V{version-1}.
+Incorporate the critique below and introduce fault-tolerant branching, retries, and new APIs.
+
+Critique:
 {feedback}
-Evolve logic, introduce new node types, add retries, fallbacks, API diversity.
-Avoid regressions. Maintain forward momentum.
-Previous prompt:
+
+Prior design goal:
 {prev_prompt}
+
+Requirements:
+- No regression from V{version-1}
+- At least one new node type
+- Use of conditional logic
+- One external API call
 """
 
 def extract_node_summary(workflow):
@@ -85,7 +93,7 @@ def is_structurally_identical(summary1, summary2):
 def generate_workflow(version, prompt, prev_summary=None):
     for attempt in range(3):
         try:
-            raw = gpt(f"Generate n8n workflow.json for V{version} with:\n{prompt}")
+            raw = gpt(f"Generate n8n workflow.json for V{version} with:\n{prompt}\nMust include at least one webhook, error handler, and data transformation node.")
             wf = json.loads(raw)
             new_summary = extract_node_summary(wf)
             if prev_summary and is_structurally_identical(new_summary, prev_summary):
@@ -115,7 +123,7 @@ def score(workflow):
     if summary['external_apis'] >= 2: s += 10
     try:
         llm = gpt(f"Score this n8n workflow 0–100 for enterprise readiness:\n{json.dumps(workflow)}")
-        digits = [int(s) for s in llm.split() if s.isdigit() and 0 <= int(s) <= 100]
+        digits = [int(x) for x in re.findall(r"\\b\\d{1,3}\\b", llm) if 0 <= int(x) <= 100]
         return int((s + (max(digits) if digits else 50)) / 2)
     except:
         return s
@@ -141,7 +149,8 @@ def run():
     folder = os.path.join(PACKS_DIR, f"V{version}_n8n_Ultimate_Pack")
 
     prev_prompt = load_json("prompt_history.json").get(f"V{version-1}", "")
-    feedback = load_json(os.path.join(PACKS_DIR, "feedback.json")).get("V_prev_critique", "")
+    feedback_data = load_json(os.path.join(PACKS_DIR, "feedback.json"))
+    feedback = feedback_data.get("V_prev_critique", "") if feedback_data else ""
     prompt = shape_prompt(version, prev_prompt, feedback)
 
     prev_workflow = load_json(os.path.join(PACKS_DIR, f"V{version-1}_n8n_Ultimate_Pack", "workflow.json")) if version > 1 else None
@@ -180,3 +189,6 @@ def run():
     save_json(VERSION_LEDGER, ledger)
 
     print(f"✅ V{version} complete with score {score_val}.")
+
+if __name__ == "__main__":
+    run()
