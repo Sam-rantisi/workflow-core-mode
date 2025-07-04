@@ -84,6 +84,7 @@ def is_structurally_identical(summary1, summary2):
     return summary1 == summary2
 
 def generate_workflow(version, prompt, prev_summary=None, prev_score=None):
+    candidates = []
     for attempt in range(5):
         try:
             raw = gpt(f"Return only valid JSON for this n8n workflow version V{version}:\n{prompt}")
@@ -92,20 +93,25 @@ def generate_workflow(version, prompt, prev_summary=None, prev_score=None):
             new_score = score(wf)
 
             if prev_summary and is_structurally_identical(new_summary, prev_summary):
-                print("❌ Evolution failed — structure repeated, retrying...")
+                print("❌ Evolution failed — structure repeated, skipping candidate...")
                 continue
 
             if prev_score is not None and new_score < prev_score:
-                print(f"❌ Score regression ({new_score} < {prev_score}) — retrying...")
+                print(f"❌ Score regression ({new_score} < {prev_score}) — skipping candidate...")
                 continue
 
-            return wf
+            candidates.append((wf, new_score))
         except json.JSONDecodeError:
             print("❌ Invalid JSON — retrying...")
         except Exception as e:
             print(f"⚠️ Exception during generation: {e}")
-    print("⚠️ Fallback triggered after 5 attempts.")
-    return fallback_workflow(version)
+
+    if not candidates:
+        print("⚠️ Fallback triggered after 5 attempts.")
+        return fallback_workflow(version)
+
+    best = max(candidates, key=lambda x: x[1])
+    return best[0]
 
 def fallback_workflow(version):
     nodes = [
