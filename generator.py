@@ -49,9 +49,10 @@ def gpt(msg, temp=0.6):
     return res.choices[0].message.content.strip()
 
 def gpt_vote(prompt, options):
-    votes = [gpt(f"Evaluate this upgrade:
-{prompt}\n
-Was it an improvement over the previous version? Answer 'yes' or 'no'.") for _ in range(3)]
+    votes = [gpt(f"""Evaluate this upgrade:
+{prompt}
+
+Was it an improvement over the previous version? Answer 'yes' or 'no'.""") for _ in range(3)]
     return votes.count("yes") >= 2
 
 # === JSON + File Ops ===
