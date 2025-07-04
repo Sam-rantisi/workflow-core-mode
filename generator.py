@@ -86,7 +86,7 @@ def is_structurally_identical(summary1, summary2):
 def generate_workflow(version, prompt, prev_summary=None, prev_score=None):
     for attempt in range(5):
         try:
-            raw = gpt(f"Return only valid JSON for this n8n workflow:
+            raw = gpt(f"Fallback: return valid JSON only for n8n V{version}:\n{prompt}")
 {prompt}")
             wf = json.loads(raw)
             new_summary = extract_node_summary(wf)
