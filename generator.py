@@ -1,6 +1,6 @@
 # generator_refactored.py
 # Ultra-intelligent generator for $100M-grade n8n workflows
-# Now with deploy-block switch
+# Version-aware, self-correcting, evolution-enforcing
 
 import os
 import json
@@ -14,9 +14,10 @@ from openai import OpenAI
 
 load_dotenv()
 
-# 🛑 HARD STOP IF DEPLOYMENT OFF
-if os.getenv("DEPLOYMENT_ACTIVE", "true").lower() != "true":
-    print("🚫 Deployment paused. Set DEPLOYMENT_ACTIVE=true to resume.")
+# === Deployment toggle (env-based) ===
+DEPLOYMENT_FLAG = os.getenv("DEPLOYMENT_ACTIVE", "false").lower()
+if DEPLOYMENT_FLAG != "true":
+    print("\n🛑 Deployment is disabled (DEPLOYMENT_ACTIVE != true). Skipping workflow generation.\n")
     exit()
 
 REQUIRED_VARS = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"]
@@ -34,6 +35,7 @@ VERSION_LEDGER = "versions.json"
 PRUNE_LIMIT = 10
 SCORE_THRESHOLD = 60
 
+# === Helpers ===
 def gpt(msg, temp=0.6):
     res = client.chat.completions.create(
         model="gpt-4",
@@ -103,11 +105,7 @@ def fallback_workflow(version):
         {"name": "Set", "type": "set", "parameters": {"fields": [{"name": "status", "value": "done"}]}},
         {"name": "Supabase Insert", "type": "supabase", "parameters": {"table": "log"}}
     ]
-    return {
-        "name": f"Ultimate_V{version}",
-        "nodes": nodes,
-        "connections": {nodes[i]['name']: [nodes[i+1]['name']] for i in range(len(nodes)-1)}
-    }
+    return {"name": f"Ultimate_V{version}", "nodes": nodes, "connections": {nodes[i]['name']: [nodes[i+1]['name']] for i in range(len(nodes)-1)}}
 
 def score(workflow):
     summary = extract_node_summary(workflow)
@@ -182,6 +180,3 @@ def run():
     save_json(VERSION_LEDGER, ledger)
 
     print(f"✅ V{version} complete with score {score_val}.")
-
-if __name__ == "__main__":
-    run()
