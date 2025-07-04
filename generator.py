@@ -67,6 +67,7 @@ Evolve logic, introduce new node types, add retries, fallbacks, API diversity.
 Avoid regressions. Maintain forward momentum.
 Previous prompt:
 {prev_prompt}
+Return valid JSON only.
 """
 
 def extract_node_summary(workflow):
@@ -83,23 +84,29 @@ def is_structurally_identical(summary1, summary2):
     return summary1 == summary2
 
 def generate_workflow(version, prompt, prev_summary=None, prev_score=None):
-    for attempt in range(3):
+    for attempt in range(5):
         try:
-            raw = gpt(f"Generate n8n workflow.json for V{version} with:\n{prompt}")
+            raw = gpt(f"Return only valid JSON for this n8n workflow:
+{prompt}")
             wf = json.loads(raw)
             new_summary = extract_node_summary(wf)
-            if prev_summary and is_structurally_identical(new_summary, prev_summary):
-                print("❌ Evolution failed — retrying due to identical structure...")
-                continue
             new_score = score(wf)
+
+            if prev_summary and is_structurally_identical(new_summary, prev_summary):
+                print("❌ Evolution failed — structure repeated, retrying...")
+                continue
+
             if prev_score is not None and new_score < prev_score:
                 print(f"❌ Score regression ({new_score} < {prev_score}) — retrying...")
                 continue
+
             return wf
-        except:
-            print("⚠️ Fallback triggered.")
-            return fallback_workflow(version)
-    raise RuntimeError("🛑 Failed to evolve workflow after 3 attempts.")
+        except json.JSONDecodeError:
+            print("❌ Invalid JSON — retrying...")
+        except Exception as e:
+            print(f"⚠️ Exception during generation: {e}")
+    print("⚠️ Fallback triggered after 5 attempts.")
+    return fallback_workflow(version)
 
 def fallback_workflow(version):
     nodes = [
