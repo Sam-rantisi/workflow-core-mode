@@ -14,6 +14,12 @@ from openai import OpenAI
 
 load_dotenv()
 
+# === Deployment toggle (env-based) ===
+DEPLOYMENT_FLAG = os.getenv("DEPLOYMENT_ACTIVE", "false").lower()
+if DEPLOYMENT_FLAG != "true":
+    print("\n🛑 Deployment is disabled (DEPLOYMENT_ACTIVE != true). Skipping workflow generation.\n")
+    exit()
+
 REQUIRED_VARS = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"]
 for var in REQUIRED_VARS:
     if not os.getenv(var):
@@ -174,6 +180,3 @@ def run():
     save_json(VERSION_LEDGER, ledger)
 
     print(f"✅ V{version} complete with score {score_val}.")
-
-if __name__ == "__main__":
-    run()
