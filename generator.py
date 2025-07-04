@@ -1,4 +1,4 @@
-# generator.py
+# generator_refactored.py
 # Ultra-intelligent generator for $100M-grade n8n workflows
 # Version-aware, self-correcting, evolution-enforcing
 
@@ -7,7 +7,6 @@ import json
 import zipfile
 import shutil
 import hashlib
-import re
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -61,20 +60,13 @@ def get_versions():
 
 def shape_prompt(version, prev_prompt, feedback):
     return f"""
-V{version} Mission — Evolve automation beyond V{version-1}.
-Incorporate the critique below and introduce fault-tolerant branching, retries, and new APIs.
-
-Critique:
+Build the most advanced, fault-tolerant, enterprise-scale n8n workflow for automation V{version}.
+Incorporate feedback from V{version-1}:
 {feedback}
-
-Prior design goal:
+Evolve logic, introduce new node types, add retries, fallbacks, API diversity.
+Avoid regressions. Maintain forward momentum.
+Previous prompt:
 {prev_prompt}
-
-Requirements:
-- No regression from V{version-1}
-- At least one new node type
-- Use of conditional logic
-- One external API call
 """
 
 def extract_node_summary(workflow):
@@ -90,14 +82,18 @@ def extract_node_summary(workflow):
 def is_structurally_identical(summary1, summary2):
     return summary1 == summary2
 
-def generate_workflow(version, prompt, prev_summary=None):
+def generate_workflow(version, prompt, prev_summary=None, prev_score=None):
     for attempt in range(3):
         try:
-            raw = gpt(f"Generate n8n workflow.json for V{version} with:\n{prompt}\nMust include at least one webhook, error handler, and data transformation node.")
+            raw = gpt(f"Generate n8n workflow.json for V{version} with:\n{prompt}")
             wf = json.loads(raw)
             new_summary = extract_node_summary(wf)
             if prev_summary and is_structurally_identical(new_summary, prev_summary):
-                print("❌ Evolution failed — retrying...")
+                print("❌ Evolution failed — retrying due to identical structure...")
+                continue
+            new_score = score(wf)
+            if prev_score is not None and new_score < prev_score:
+                print(f"❌ Score regression ({new_score} < {prev_score}) — retrying...")
                 continue
             return wf
         except:
@@ -123,7 +119,7 @@ def score(workflow):
     if summary['external_apis'] >= 2: s += 10
     try:
         llm = gpt(f"Score this n8n workflow 0–100 for enterprise readiness:\n{json.dumps(workflow)}")
-        digits = [int(x) for x in re.findall(r"\\b\\d{1,3}\\b", llm) if 0 <= int(x) <= 100]
+        digits = [int(s) for s in llm.split() if s.isdigit() and 0 <= int(s) <= 100]
         return int((s + (max(digits) if digits else 50)) / 2)
     except:
         return s
@@ -149,14 +145,14 @@ def run():
     folder = os.path.join(PACKS_DIR, f"V{version}_n8n_Ultimate_Pack")
 
     prev_prompt = load_json("prompt_history.json").get(f"V{version-1}", "")
-    feedback_data = load_json(os.path.join(PACKS_DIR, "feedback.json"))
-    feedback = feedback_data.get("V_prev_critique", "") if feedback_data else ""
+    feedback = load_json(os.path.join(PACKS_DIR, "feedback.json")).get("V_prev_critique", "")
     prompt = shape_prompt(version, prev_prompt, feedback)
 
     prev_workflow = load_json(os.path.join(PACKS_DIR, f"V{version-1}_n8n_Ultimate_Pack", "workflow.json")) if version > 1 else None
     prev_summary = extract_node_summary(prev_workflow) if prev_workflow else None
+    prev_score = score(prev_workflow) if prev_workflow else None
 
-    wf = generate_workflow(version, prompt, prev_summary)
+    wf = generate_workflow(version, prompt, prev_summary, prev_score)
     score_val = score(wf)
     summary = extract_node_summary(wf)
 
