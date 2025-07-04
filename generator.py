@@ -1,6 +1,6 @@
 # generator_refactored.py
 # Ultra-intelligent generator for $100M-grade n8n workflows
-# Version-aware, self-correcting, evolution-enforcing
+# Now with deploy-block switch
 
 import os
 import json
@@ -13,6 +13,11 @@ from supabase import create_client, Client
 from openai import OpenAI
 
 load_dotenv()
+
+# 🛑 HARD STOP IF DEPLOYMENT OFF
+if os.getenv("DEPLOYMENT_ACTIVE", "true").lower() != "true":
+    print("🚫 Deployment paused. Set DEPLOYMENT_ACTIVE=true to resume.")
+    exit()
 
 REQUIRED_VARS = ["SUPABASE_URL", "SUPABASE_SERVICE_KEY", "OPENAI_API_KEY"]
 for var in REQUIRED_VARS:
@@ -29,7 +34,6 @@ VERSION_LEDGER = "versions.json"
 PRUNE_LIMIT = 10
 SCORE_THRESHOLD = 60
 
-# === Helpers ===
 def gpt(msg, temp=0.6):
     res = client.chat.completions.create(
         model="gpt-4",
@@ -99,7 +103,11 @@ def fallback_workflow(version):
         {"name": "Set", "type": "set", "parameters": {"fields": [{"name": "status", "value": "done"}]}},
         {"name": "Supabase Insert", "type": "supabase", "parameters": {"table": "log"}}
     ]
-    return {"name": f"Ultimate_V{version}", "nodes": nodes, "connections": {nodes[i]['name']: [nodes[i+1]['name']] for i in range(len(nodes)-1)}}
+    return {
+        "name": f"Ultimate_V{version}",
+        "nodes": nodes,
+        "connections": {nodes[i]['name']: [nodes[i+1]['name']] for i in range(len(nodes)-1)}
+    }
 
 def score(workflow):
     summary = extract_node_summary(workflow)
